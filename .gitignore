@@ -8,4 +8,5 @@ coverage
 .env.local
 .env.*.local
 
-/kafka-setup
+# Ignore kafka-setup runtime data but track the compose file
+kafka-setup/data/

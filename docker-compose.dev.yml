@@ -24,8 +24,9 @@ services:
     environment:
       NODE_ENV: development
       CORS_ORIGINS: 'http://localhost:3000'
-      # Reach the Kafka + MongoDB from kafka-setup running on the host
-      KAFKA_BROKERS: 'host.docker.internal:9092'
+      # Reach the kafka-setup services running on the host machine
+      # Port 9093 = DOCKER listener (advertised as host.docker.internal:9093)
+      KAFKA_BROKERS: 'host.docker.internal:9093'
       MONGO_URI: 'mongodb://host.docker.internal:27017'
     volumes:
       # Source — hot-reload watches these
