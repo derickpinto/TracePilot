@@ -53,6 +53,15 @@ export class WorkflowGateway
             this.server?.to(`transaction:${detail.transactionId}`).emit('transaction.updated', payload);
             this.server?.to('global').emit('transaction.updated', payload);
         });
+
+        this.stateService.on('stats.updated', (stats: ReturnType<WorkflowStateService['getStats']>) => {
+            const payload: WsPayload<typeof stats> = {
+                type: 'stats.updated',
+                data: stats,
+                timestamp: new Date().toISOString(),
+            };
+            this.server?.to('global').emit('stats.updated', payload);
+        });
     }
 
     afterInit(server: Server) {

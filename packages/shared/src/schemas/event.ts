@@ -95,7 +95,7 @@ export interface PaginatedResponse<T> {
     hasMore: boolean;
 }
 
-export type WsEventType = 'workflow.updated' | 'transaction.updated' | 'ping' | 'pong';
+export type WsEventType = 'workflow.updated' | 'transaction.updated' | 'stats.updated' | 'ping' | 'pong';
 
 export interface WsPayload<T = unknown> {
     type: WsEventType;

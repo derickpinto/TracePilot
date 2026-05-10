@@ -128,6 +128,7 @@ export class WorkflowStateService extends EventEmitter implements OnModuleInit, 
 
         this.emit('workflow.updated', this.workflows.get(event.workflowId)!.state);
         this.emit('transaction.updated', this.transactions.get(event.transactionId)!.detail);
+        this.emit('stats.updated', this.getStats());
     }
 
     getWorkflow(workflowId: string): WorkflowState | null {
