@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { MongoClient, Db, ReadPreference } from 'mongodb';
+import { MongoClient, Db } from 'mongodb';
 import { WorkflowEvent, WorkflowEventSchema, TransactionDetail } from '@ai-dashboard/shared';
 import { AppConfig } from '../common/app-config';
 
@@ -18,9 +18,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
         }
         try {
             this.client = new MongoClient(this.config.mongoUri!, {
-                readPreference: ReadPreference.SECONDARY_PREFERRED,
-                // Read-only: no write concern needed
-                maxPoolSize: 5,
+                maxPoolSize: 10,
                 serverSelectionTimeoutMS: 5000,
                 connectTimeoutMS: 5000,
             });
@@ -46,8 +44,20 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
+     * Persist a single workflow event to MongoDB.
+     */
+    async saveEvent(event: WorkflowEvent): Promise<void> {
+        if (!this.db) return;
+        try {
+            const collection = this.db.collection(this.config.mongoCollectionEvents);
+            await collection.insertOne({ ...event });
+        } catch (err) {
+            this.logger.error('Failed to save event to MongoDB:', err);
+        }
+    }
+
+    /**
      * Find historical events for a transaction from MongoDB.
-     * STRICTLY read-only — only find operations used.
      */
     async findTransactionHistory(transactionId: string): Promise<TransactionDetail | null> {
         if (!this.db) return null;

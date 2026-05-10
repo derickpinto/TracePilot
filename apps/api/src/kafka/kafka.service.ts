@@ -7,6 +7,7 @@ import {
 import { Kafka, Consumer, EachMessagePayload, KafkaConfig, SASLOptions } from 'kafkajs';
 import { WorkflowEventSchema } from '@ai-dashboard/shared';
 import { WorkflowStateService } from '../workflow-state/workflow-state.service';
+import { MongoService } from '../mongo/mongo.service';
 import { AppConfig } from '../common/app-config';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     constructor(
         private readonly config: AppConfig,
         private readonly stateService: WorkflowStateService,
+        private readonly mongoService: MongoService,
     ) {
         const kafkaConfig: KafkaConfig = {
             clientId: this.config.kafkaClientId,
@@ -120,6 +122,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
             }
 
             this.stateService.ingestEvent(result.data);
+            await this.mongoService.saveEvent(result.data);
 
             this.logger.debug(
                 `Event ingested | workflowId=${result.data.workflowId} step=${result.data.step} status=${result.data.status}`,
@@ -152,5 +155,6 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
             throw new Error(`Invalid event: ${JSON.stringify(result.error.issues)}`);
         }
         this.stateService.ingestEvent(result.data);
+        await this.mongoService.saveEvent(result.data);
     }
 }

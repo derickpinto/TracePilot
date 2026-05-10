@@ -1,10 +1,6 @@
-The dashboard application, show one automation usecase at a time. So I need below changes.
-1. The event schema must have a required field "usecase" to identify the usecase of the event.
-2. The dashboard should be updated to filter and display events based on the "usecase"
-3. The event ingestion process should be modified to ensure that the "usecase" field is populated for each event before it is stored in the database.
-4. Implement a validation mechanism to check for the presence of the "usecase" field during event ingestion, and reject any events that do not have this field populated.
-5. Update the event processing logic to route events to the appropriate usecase-specific handlers based on the value of the "usecase" field.
+Update the mock data sending logic as below:
+Right a script that sends mock event to kafka topics every 5seconds.
+Generate transaction id events everytime, transaction event muust have same transaction id.
 
-Mkae sure to use this usecase field in the mock test data for the event.
-Example: 
-Call the test usecase as "Test UseCase". Display a title on the dashboard for the "Test UseCase" and ensure that only events with the "usecase" field set to "Test UseCase" are displayed in the dashboard.
+use local kafka setup as given in docker-compose of local kafka 
+Use mongosh of local mongo setup to verify the events are coming in. and store it.
