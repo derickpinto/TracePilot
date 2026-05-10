@@ -1,0 +1,27 @@
+# ── Dev image for Next.js web (hot-reload via next dev) ──────────
+FROM node:22-alpine
+WORKDIR /app
+
+RUN npm install -g pnpm@11
+
+# Install dependencies
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/web/package.json ./apps/web/
+
+RUN pnpm install --filter @ai-dashboard/web --filter @ai-dashboard/shared
+
+# Copy tsconfig and source (app/components dirs overridden by volume mount at runtime)
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+
+# Build shared so web can import types
+RUN cd packages/shared && node_modules/.bin/tsc -p tsconfig.json || true
+
+WORKDIR /app/apps/web
+
+EXPOSE 3000
+
+# WATCHPACK_POLLING is set via compose env for Docker filesystem compat
+CMD ["node_modules/.bin/next", "dev", "-p", "3000"]

@@ -1,0 +1,30 @@
+# ── Dev image for NestJS API (hot-reload via nest start --watch) ──
+FROM node:22-alpine
+WORKDIR /app
+
+RUN npm install -g pnpm@11
+
+# Install dependencies for all relevant workspaces
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+
+RUN pnpm install --filter @ai-dashboard/api --filter @ai-dashboard/shared
+
+# Copy tsconfig and source (source will be overridden by volume mount at runtime)
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/api ./apps/api
+
+# Build shared once so the API can import it at start
+RUN cd packages/shared && node_modules/.bin/tsc -p tsconfig.json || true
+
+# Pre-compile API to warm up dist/ before nest --watch starts
+RUN cd apps/api && node_modules/.bin/tsc -p tsconfig.json || true
+
+WORKDIR /app/apps/api
+
+EXPOSE 4000
+
+# nest start --watch recompiles on every file change
+CMD ["node_modules/.bin/nest", "start", "--watch"]

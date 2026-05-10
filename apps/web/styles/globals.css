@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 222 47% 6%;
+        --foreground: 220 14% 96%;
+        --card: 222 40% 9%;
+        --card-foreground: 220 14% 96%;
+        --popover: 222 40% 9%;
+        --popover-foreground: 220 14% 96%;
+        --primary: 239 84% 67%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 222 30% 14%;
+        --secondary-foreground: 220 14% 96%;
+        --muted: 222 30% 12%;
+        --muted-foreground: 220 10% 55%;
+        --accent: 222 30% 14%;
+        --accent-foreground: 220 14% 96%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 222 30% 15%;
+        --input: 222 30% 15%;
+        --ring: 239 84% 67%;
+        --radius: 0.5rem;
+
+        /* Status colors */
+        --status-pending: 38 92% 50%;
+        --status-running: 217 91% 60%;
+        --status-completed: 160 84% 39%;
+        --status-failed: 0 72% 51%;
+        --status-retry: 25 95% 53%;
+        --status-approved: 265 89% 66%;
+        --status-rejected: 330 81% 60%;
+    }
+}
+
+@layer base {
+    * {
+        border-color: hsl(var(--border));
+    }
+
+    body {
+        @apply antialiased;
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: hsl(var(--background));
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: hsl(var(--border));
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: hsl(var(--muted-foreground));
+    }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .status-pending {
+        color: hsl(var(--status-pending));
+    }
+
+    .status-running {
+        color: hsl(var(--status-running));
+    }
+
+    .status-completed {
+        color: hsl(var(--status-completed));
+    }
+
+    .status-failed {
+        color: hsl(var(--status-failed));
+    }
+
+    .status-retry {
+        color: hsl(var(--status-retry));
+    }
+
+    .status-approved {
+        color: hsl(var(--status-approved));
+    }
+
+    .status-rejected {
+        color: hsl(var(--status-rejected));
+    }
+
+    .bg-status-pending {
+        background-color: hsl(var(--status-pending) / 0.15);
+    }
+
+    .bg-status-running {
+        background-color: hsl(var(--status-running) / 0.15);
+    }
+
+    .bg-status-completed {
+        background-color: hsl(var(--status-completed) / 0.15);
+    }
+
+    .bg-status-failed {
+        background-color: hsl(var(--status-failed) / 0.15);
+    }
+
+    .bg-status-retry {
+        background-color: hsl(var(--status-retry) / 0.15);
+    }
+
+    .bg-status-approved {
+        background-color: hsl(var(--status-approved) / 0.15);
+    }
+
+    .bg-status-rejected {
+        background-color: hsl(var(--status-rejected) / 0.15);
+    }
+}
+
+/* AG Grid dark theme overrides */
+.ag-theme-alpine-dark {
+    --ag-background-color: hsl(var(--card));
+    --ag-header-background-color: hsl(var(--background));
+    --ag-odd-row-background-color: hsl(var(--background) / 0.4);
+    --ag-row-hover-color: hsl(var(--primary) / 0.08);
+    --ag-selected-row-background-color: hsl(var(--primary) / 0.12);
+    --ag-border-color: hsl(var(--border));
+    --ag-header-foreground-color: hsl(var(--muted-foreground));
+    --ag-foreground-color: hsl(var(--foreground));
+    --ag-font-family: 'Inter', system-ui, sans-serif;
+    --ag-font-size: 13px;
+    --ag-cell-horizontal-padding: 16px;
+    --ag-row-height: 48px;
+    --ag-header-height: 44px;
+}
+
+/* React Flow custom styles */
+.react-flow__background {
+    background-color: hsl(var(--background));
+}
+
+.react-flow__controls {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.react-flow__controls-button {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+}
+
+.react-flow__controls-button:hover {
+    background: hsl(var(--accent));
+    color: hsl(var(--foreground));
+}
+
+.react-flow__minimap {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+}

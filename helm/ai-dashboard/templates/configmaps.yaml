@@ -1,0 +1,23 @@
+{{- if .Values.api.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-api-config
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+data:
+  {{- range $k, $v := .Values.api.env }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+{{- end }}
+---
+{{- if .Values.web.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-web-config
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
+data:
+  {{- range $k, $v := .Values.web.env }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+{{- end }}
