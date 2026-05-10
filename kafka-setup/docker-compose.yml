@@ -5,9 +5,15 @@
 #   docker compose up -d
 #   docker compose down -v   (also removes mongo volume)
 #
-# Ports:
-#   9092  — Kafka for host processes (producer script, API on host)
-#   9093  — Kafka for Docker containers (API running in docker-compose.dev.yml)
+# Listener architecture (3 listeners on the broker):
+#   INTERNAL  port 29092  — container-to-container inside this network
+#                           (kafka-ui connects here; advertised as kafka:29092)
+#   EXTERNAL  port 9092   — host processes (producer script, API on host)
+#                           (advertised as localhost:9092)
+#   DOCKER    port 9093   — other Docker networks, e.g. docker-compose.dev.yml
+#                           (advertised as host.docker.internal:9093)
+#
+# Other ports:
 #   27017 — MongoDB
 #   8080  — Kafka UI  →  http://localhost:8080
 # ─────────────────────────────────────────────────────────────────
@@ -26,30 +32,36 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-setup-broker
+    hostname: kafka
     restart: unless-stopped
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"   # host clients (producer script / API on host)
-      - "9093:9093"   # Docker container clients (api-dev container)
+      - "9092:9092"   # host processes (producer script, API running on host)
+      - "9093:9093"   # Docker containers in other compose networks
+      # 29092 is intentionally NOT published — internal only
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # Two listeners: one for host, one advertised for Docker containers
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,DOCKER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,DOCKER://host.docker.internal:9093
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,DOCKER:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # Three listeners:
+      #   INTERNAL  — for kafka-ui and other services in THIS compose network
+      #   EXTERNAL  — for host machine processes
+      #   DOCKER    — for containers in other compose networks (docker-compose.dev.yml)
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,DOCKER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092,DOCKER://host.docker.internal:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 15
       start_period: 30s
 
   kafka-ui:
@@ -62,8 +74,10 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Connect via INTERNAL listener — stays within Docker network,
+      # so metadata responses resolve correctly to kafka:29092
       KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_READONLY: 'false'
       DYNAMIC_CONFIG_ENABLED: 'true'
 
