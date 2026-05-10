@@ -70,6 +70,14 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
             await this.consumer.connect();
             this.logger.log(`Kafka consumer connected | group=${this.config.kafkaGroupId}`);
 
+            // Handle async consumer crashes (e.g. KafkaJSGroupCoordinatorNotFound) that
+            // occur after consumer.run() returns and are never caught by this try/catch.
+            this.consumer.on(this.consumer.events.CRASH, ({ payload }) => {
+                this.logger.warn(`Kafka consumer crashed: ${payload.error?.message ?? 'unknown'} — scheduling reconnect`);
+                this.isRunning = false;
+                this.scheduleReconnect();
+            });
+
             for (const topic of this.config.kafkaTopics) {
                 await this.consumer.subscribe({ topic, fromBeginning: false });
                 this.logger.log(`Subscribed to topic: ${topic}`);
@@ -83,19 +91,20 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
             this.isRunning = true;
         } catch (err) {
-            this.logger.warn('Kafka unavailable — will retry in 30s');
+            this.logger.warn(`Kafka unavailable (${(err as Error).message}) — will retry in 30s`);
             this.scheduleReconnect();
         }
     }
 
     private scheduleReconnect(delayMs = 30_000) {
         if (this.reconnectTimer) return;
+        this.logger.log(`Reconnecting to Kafka in ${delayMs / 1000}s…`);
         this.reconnectTimer = setTimeout(async () => {
             this.reconnectTimer = null;
             try {
                 await this.consumer.disconnect().catch(() => void 0);
             } catch { /* ignore */ }
-            // Recreate consumer to reset internal state
+            // Recreate consumer to reset internal KafkaJS state and event listeners
             this.consumer = this.kafka.consumer({
                 groupId: this.config.kafkaGroupId,
                 sessionTimeout: 30000,
